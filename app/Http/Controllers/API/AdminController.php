@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\PasswordResetToken;
 use App\Models\User;
+use App\Services\HistoricService;
 use App\Services\InvitationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,9 +16,10 @@ use Illuminate\Support\Str;
 class AdminController extends Controller
 {
 
-    public function __construct(InvitationService $invitationService)
+    public function __construct(InvitationService $invitationService,HistoricService $historicService)
     {
         $this->invitationService=$invitationService;
+        $this->historicService=$historicService;
     }
 
     public function listAdmins(): JsonResponse
