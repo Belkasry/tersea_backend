@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PasswordResetToken;
 use App\Models\User;
 use App\Services\InvitationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -19,13 +20,13 @@ class AdminController extends Controller
         $this->invitationService=$invitationService;
     }
 
-    public function listAdmins(): \Illuminate\Http\JsonResponse
+    public function listAdmins(): JsonResponse
     {
         $admins = User::where('role', 'admin')->orderBy('created_at', 'DESC')->get();
         return response()->json($admins);
     }
 
-    public function addAdmin(Request $request): \Illuminate\Http\JsonResponse
+    public function addAdmin(Request $request): JsonResponse
     {
         $request->validate([
             'email' => 'required|email|unique:users',
@@ -79,9 +80,6 @@ class AdminController extends Controller
             'token' => $token,
             'created_at' => now()
         ]);
-//        Mail::send('emails.invite', ['email' => $email], function ($message) use ($email) {
-//            $message->to($email)->subject('Admin InvitationService');
-//        });
         return response()->json(['token' => $token]);
     }
 
@@ -98,7 +96,7 @@ class AdminController extends Controller
 
         return response()->json(['token' => $token]);
     }
-    public function getUserByToken(Request $request): \Illuminate\Http\JsonResponse
+    public function getUserByToken(Request $request): JsonResponse
     {
         $request->validate(['token' => 'required']);
 
@@ -112,7 +110,7 @@ class AdminController extends Controller
         return response()->json(['user' => $user]);
     }
 
-    public function resetPassword(Request $request): \Illuminate\Http\JsonResponse
+    public function resetPassword(Request $request): JsonResponse
     {
         $request->validate([
             'token' => 'required',
@@ -124,10 +122,19 @@ class AdminController extends Controller
             return response()->json(['message' => 'Invalid token'], 404);
         }
         $user = User::where('email', $token->email)->first();
+
         $user->password = Hash::make($request->new_password);
         $user->status = 'Active';
         $user->save();
         $token->delete();
+        $this->historicService->saveHistoric(
+            "accept_invite",
+            date("Y-m-d H:i:s"),
+            null,
+            null,
+            null,
+            $user->name." a validé l’invitation"
+        );
         return response()->json(['message' => 'Password has been reset and account activated']);
     }
 

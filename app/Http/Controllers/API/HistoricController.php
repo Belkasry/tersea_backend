@@ -10,7 +10,8 @@ class HistoricController extends Controller
 {
     public function index()
     {
-        $historics = Historic::with("admin","employee","company")->orderBy('created_at', 'DESC')->get();
+        $historics = Historic::with("admin","employee","company")->orderBy('created_at', 'DESC')
+            ->get();
         return response()->json($historics);
     }
 

@@ -118,7 +118,6 @@ class EmployeeController extends Controller
     }
 
 
-    // Update an employee
     public function update(Request $request, Employee $employee)
     {
         $validatedData = $request->validate([
